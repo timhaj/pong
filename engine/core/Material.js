@@ -10,13 +10,13 @@ export class Material {
 
         baseFactor = [1, 1, 1, 1],
         emissionFactor = [0, 0, 0],
-        normalFactor = 1,
-        occlusionFactor = 1,
-        roughnessFactor = 1,
-        metalnessFactor = 1,
-        diffuse = 1,
-        specular = 1,
-        shininess = 50,
+        normalFactor = 1.0,
+        occlusionFactor = 1.0,
+        roughnessFactor = 1.0,
+        metalnessFactor = 1.0,
+        diffuse = 1.0,
+        specular = 1.0,
+        shininess = 50.0,
     } = {}) {
         this.baseTexture = baseTexture;
         this.emissionTexture = emissionTexture;

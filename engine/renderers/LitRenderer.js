@@ -214,7 +214,7 @@ export class LitRenderer extends BaseRenderer {
         }
 
         const lightUniformBuffer = this.device.createBuffer({
-            size: 48,
+            size: 48 *11,
             usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
         });
 
@@ -273,7 +273,7 @@ export class LitRenderer extends BaseRenderer {
         if (this.depthTexture.width !== this.canvas.width || this.depthTexture.height !== this.canvas.height) {
             this.recreateDepthTexture();
         }
-
+    
         const encoder = this.device.createCommandEncoder();
         this.renderPass = encoder.beginRenderPass({
             colorAttachments: [
@@ -292,7 +292,8 @@ export class LitRenderer extends BaseRenderer {
             },
         });
         this.renderPass.setPipeline(this.perFragment ? this.pipelinePerFragment : this.pipelinePerVertex);
-
+    
+        // Posodobi kamero
         const cameraComponent = camera.getComponentOfType(Camera);
         const viewMatrix = getGlobalViewMatrix(camera);
         const projectionMatrix = getProjectionMatrix(camera);
@@ -302,23 +303,39 @@ export class LitRenderer extends BaseRenderer {
         this.device.queue.writeBuffer(cameraUniformBuffer, 64, projectionMatrix);
         this.device.queue.writeBuffer(cameraUniformBuffer, 128, cameraPosition);
         this.renderPass.setBindGroup(0, cameraBindGroup);
-
-        const light = scene.find(node => node.getComponentOfType(Light));
-        const lightComponent = light.getComponentOfType(Light);
-        const lightColor = vec3.scale(vec3.create(), lightComponent.color, lightComponent.intensity / 255);
-        const lightPosition = mat4.getTranslation(vec3.create(), getGlobalModelMatrix(light));
-        const lightAttenuation = vec3.clone(lightComponent.attenuation);
-        const { lightUniformBuffer, lightBindGroup } = this.prepareLight(lightComponent);
-        this.device.queue.writeBuffer(lightUniformBuffer, 0, lightColor);
-        this.device.queue.writeBuffer(lightUniformBuffer, 16, lightPosition);
-        this.device.queue.writeBuffer(lightUniformBuffer, 32, lightAttenuation);
+    
+        // Pripravi svetila
+        const lights = scene.filter(node => node.getComponentOfType(Light)); // Najdi vse svetlobne vire
+        const lightData = new Float32Array(lights.length * 12); // 12 = 3 (barva) + 3 (položaj) + 3 (attenuacija) + 3 (padding)
+        let offset = 0;
+        const lightComponent_start = lights[0].getComponentOfType(Light);
+    
+        lights.forEach(light => {
+            const lightComponent = light.getComponentOfType(Light);
+            const lightColor = vec3.scale(vec3.create(), lightComponent.color, lightComponent.intensity / 255);
+            const lightPosition = mat4.getTranslation(vec3.create(), getGlobalModelMatrix(light));
+            const attenuation = vec3.clone(lightComponent.attenuation);
+    
+            // Shrani podatke o svetilu v `lightData`
+            lightData.set(lightColor, offset);
+            lightData.set(lightPosition, offset + 4);
+            lightData.set(attenuation, offset + 8);
+            offset += 12; // Pomakni offset za naslednje svetilo
+        });
+    
+        const { lightUniformBuffer, lightBindGroup } = this.prepareLight(lightComponent_start); // Pripravi uniformni buffer za svetila
+        this.device.queue.writeBuffer(lightUniformBuffer, 0, lightData); // Zapiši vse podatke svetil
         this.renderPass.setBindGroup(1, lightBindGroup);
-
+    
+    
+    
+        // Upodobi vse vozlišča v sceni
         this.renderNode(scene);
-
+    
         this.renderPass.end();
         this.device.queue.submit([encoder.finish()]);
     }
+    
 
     renderNode(node, modelMatrix = mat4.create()) {
         const localMatrix = getLocalModelMatrix(node);

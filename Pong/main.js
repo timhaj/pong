@@ -270,10 +270,156 @@ function add_light() {
     light.addComponent(
         new Light({
             intensity: 21,
-            color: [255, 255, 255],
+            color: [1, 1, 1],
+            attenuation: [0.000001, 0.05, 0.00001],
         })
     );
     scene.addChild(light);
+
+    const red1 = new Node();
+    red1.addComponent(
+        new Transform({
+            translation: [17, 2, -17],
+        })
+    );
+    red1.addComponent(
+        new Light({
+            intensity: 10,
+            color: [1, 0, 0],
+        })
+    );
+    scene.addChild(red1);
+
+    const red2 = new Node();
+    red2.addComponent(
+        new Transform({
+            translation: [9, 2, -17],
+        })
+    );
+    red2.addComponent(
+        new Light({
+            intensity: 10,
+            color: [1, 0, 0],
+        })
+    );
+    scene.addChild(red2);
+
+    const red3 = new Node();
+    red3.addComponent(
+        new Transform({
+            translation: [1, 2, -17],
+        })
+    );
+    red3.addComponent(
+        new Light({
+            intensity: 10,
+            color: [1, 0, 0],
+        })
+    );
+    scene.addChild(red3);
+
+    const red4 = new Node();
+    red4.addComponent(
+        new Transform({
+            translation: [-7, 2, -17],
+        })
+    );
+    red4.addComponent(
+        new Light({
+            intensity: 10,
+            color: [1, 0, 0],
+        })
+    );
+    scene.addChild(red4);
+
+    const red5 = new Node();
+    red5.addComponent(
+        new Transform({
+            translation: [-15, 2, -17],
+        })
+    );
+    red5.addComponent(
+        new Light({
+            intensity: 10,
+            color: [1, 0, 0],
+        })
+    );
+    scene.addChild(red5);
+
+
+
+
+    //blue
+    const blue1 = new Node();
+    blue1.addComponent(
+        new Transform({
+            translation: [17, 2, 17],
+        })
+    );
+    blue1.addComponent(
+        new Light({
+            intensity: 10,
+            color: [0, 0, 1],
+        })
+    );
+    scene.addChild(blue1);
+
+    const blue2 = new Node();
+    blue2.addComponent(
+        new Transform({
+            translation: [9, 2, 17],
+        })
+    );
+    blue2.addComponent(
+        new Light({
+            intensity: 10,
+            color: [0, 0, 1],
+        })
+    );
+    scene.addChild(blue2);
+
+    const blue3 = new Node();
+    blue3.addComponent(
+        new Transform({
+            translation: [1, 2, 17],
+        })
+    );
+    blue3.addComponent(
+        new Light({
+            intensity: 10,
+            color: [0, 0, 1],
+        })
+    );
+    scene.addChild(blue3);
+
+    const blue4 = new Node();
+    blue4.addComponent(
+        new Transform({
+            translation: [-7, 2, 17],
+        })
+    );
+    blue4.addComponent(
+        new Light({
+            intensity: 10,
+            color: [0, 0, 1],
+        })
+    );
+    scene.addChild(blue4);
+
+    const blue5 = new Node();
+    blue5.addComponent(
+        new Transform({
+            translation: [-15, 2, 17],
+        })
+    );
+    blue5.addComponent(
+        new Light({
+            intensity: 10,
+            color: [0, 0, 1],
+        })
+    );
+    scene.addChild(blue5);
+
 }
 
 function LoadOurNodes() {
