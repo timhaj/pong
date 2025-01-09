@@ -17,7 +17,6 @@ import {
 import { Physics } from "./Physics.js";
 import { Light } from "../engine/renderers/Light.js";
 
-
 const canvas = document.querySelector("canvas");
 const renderer = new LitRenderer(canvas);
 
@@ -25,7 +24,7 @@ await renderer.initialize();
 
 const loader = new GLTFLoader();
 //await loader.load(new URL('./scene/scene.gltf', import.meta.url));
-await loader.load(new URL("./scene/pingpong_final_texture.gltf", import.meta.url));
+await loader.load(new URL("./scene/pingpong_final_texture_fixed.gltf", import.meta.url));
 
 const scene = loader.loadScene(loader.defaultScene);
 
@@ -47,6 +46,10 @@ let button_stopTime = document.createElement("button");
 button_stopTime.id = "button_stopTime";
 stopTime_gumb(button_stopTime);
 
+const controlsDiv = document.createElement("div");
+controlsDiv.id = "controlsDiv";
+displayControls(controlsDiv);
+
 LoadOurNodes();
 add_light();
 
@@ -60,7 +63,6 @@ lopar.aabb = {
     max: [0.2, 2, 0.2],
 };
 lopar.racket = true;
-
 
 const ball = loader.loadNode("Sphere");
 let score = document.createElement("button");
@@ -85,22 +87,23 @@ Object.assign(ball, {
     score: 0,
     winAnimation: false,
     lopar: lopar,
-    positions: [[ [-1,1,-5],[2,0,6] ]],
+    positions: [
+        [
+            [-1, 1, -5],
+            [2, 0, 6],
+        ],
+    ],
     inSound: false,
+    roundCountdown: false,
 });
 
 let ball_t = ball.getComponentOfType(Transform);
 ball_t.translation = [-1, 1, -5];
 
-
-
-
-
 ball.addComponent({
     //gravitacija
     update(t, dt) {
         function updateBallPositionWithCollision() {
-           
             if (ball.stopTime) {
                 return;
             }
@@ -126,9 +129,6 @@ ball.addComponent({
             }
         }
         updateBallPositionWithCollision();
-
-
-
     },
 });
 
@@ -328,7 +328,7 @@ function add_light() {
     const red2 = new Node();
     red2.addComponent(
         new Transform({
-            translation: [9, 2, -17],
+            translation: [8.5, 2, -17],
         })
     );
     red2.addComponent(
@@ -342,7 +342,7 @@ function add_light() {
     const red3 = new Node();
     red3.addComponent(
         new Transform({
-            translation: [1, 2, -17],
+            translation: [0, 2, -17],
         })
     );
     red3.addComponent(
@@ -356,7 +356,7 @@ function add_light() {
     const red4 = new Node();
     red4.addComponent(
         new Transform({
-            translation: [-7, 2, -17],
+            translation: [-8.5, 2, -17],
         })
     );
     red4.addComponent(
@@ -370,7 +370,7 @@ function add_light() {
     const red5 = new Node();
     red5.addComponent(
         new Transform({
-            translation: [-15, 2, -17],
+            translation: [-17, 2, -17],
         })
     );
     red5.addComponent(
@@ -380,9 +380,6 @@ function add_light() {
         })
     );
     scene.addChild(red5);
-
-
-
 
     //blue
     const blue1 = new Node();
@@ -402,7 +399,7 @@ function add_light() {
     const blue2 = new Node();
     blue2.addComponent(
         new Transform({
-            translation: [9, 2, 17],
+            translation: [8.5, 2, 17],
         })
     );
     blue2.addComponent(
@@ -416,7 +413,7 @@ function add_light() {
     const blue3 = new Node();
     blue3.addComponent(
         new Transform({
-            translation: [1, 2, 17],
+            translation: [0, 2, 17],
         })
     );
     blue3.addComponent(
@@ -430,7 +427,7 @@ function add_light() {
     const blue4 = new Node();
     blue4.addComponent(
         new Transform({
-            translation: [-7, 2, 17],
+            translation: [-8.5, 2, 17],
         })
     );
     blue4.addComponent(
@@ -444,7 +441,7 @@ function add_light() {
     const blue5 = new Node();
     blue5.addComponent(
         new Transform({
-            translation: [-15, 2, 17],
+            translation: [-17, 2, 17],
         })
     );
     blue5.addComponent(
@@ -454,7 +451,6 @@ function add_light() {
         })
     );
     scene.addChild(blue5);
-
 }
 
 function LoadOurNodes() {
@@ -514,9 +510,8 @@ function game_gumb(button) {
                 camera.removeComponentsOfType(FirstPersonController);
                 camera.addComponent(new TouchController(camera, canvas, { distance: 5 }));
                 document.body.appendChild(button_stopTime);
+                document.body.appendChild(controlsDiv);
                 score.hidden = false;
-
-
             } else {
                 //pride v FP
                 ball.score = 0; //reset score
@@ -528,6 +523,9 @@ function game_gumb(button) {
 
                 if (document.getElementById("button_stopTime")) {
                     document.body.removeChild(button_stopTime);
+                }
+                if (document.getElementById("controlsDiv")) {
+                    document.body.removeChild(controlsDiv);
                 }
                 score.hidden = true;
                 const transform = camera.getComponentOfType(Transform);
@@ -551,19 +549,21 @@ function stopTime_gumb(button) {
     button.style.right = "10px"; // Razdalja od desnega roba
     button.style.width = "150px"; // Širina gumba
     button.style.height = "50px"; // Višina gumba
-    button.style.fontSize = "16px"; // Velikost pisave
     button.style.textAlign = "center"; // Poravnava besedila na sredino
-    button.style.lineHeight = "50px"; // Vertikalna poravnava besedila
-    button.style.backgroundColor = "#007BFF"; // Barva ozadja
     button.style.color = "#FFFFFF"; // Barva besedila
-    button.style.border = "none"; // Odstrani robove
-    button.style.borderRadius = "8px"; // Zaokroži robove
+    button.style.backgroundColor = "rgba(0, 0, 0, 0.9)";
+    button.style.fontFamily = "'Arial', sans-serif";
+    button.style.fontSize = "16px";
+    button.style.borderRadius = "8px";
+    button.style.border = "2px solid rgba(255, 255, 255, 0.3)";
+    button.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.5)";
+    button.style.lineHeight = "1.8";
 
     button.style.zIndex = "1000"; // Postavi gumb nad vse ostale elemente
 
     // Dodaj event listener za tipko T
     document.addEventListener("keydown", (event) => {
-        if (event.key === "T" || (event.key === "t" && game_mode)) {
+        if ((event.key === "T" || event.key === "t") && game_mode && !ball.roundCountdown) {
             if (ball.stopTime) {
                 button.innerText = "Stop Time [T]"; // Besedilo na gumbu
             } else {
@@ -574,7 +574,7 @@ function stopTime_gumb(button) {
     });
 }
 
-function showScore(button){
+function showScore(button) {
     button.innerText = "Stevilo tock: 0"; // Besedilo na gumbu
 
     // Nastavitve stila za gumb
@@ -584,13 +584,44 @@ function showScore(button){
     button.style.left = "50%"; // Centriranje od levega roba
     button.style.width = "150px"; // Širina gumba
     button.style.height = "50px"; // Višina gumba
-    button.style.fontSize = "16px"; // Velikost pisave
     button.style.textAlign = "center"; // Poravnava besedila na sredino
-    button.style.lineHeight = "50px"; // Vertikalna poravnava besedila
-    button.style.backgroundColor = "#007BFF"; // Barva ozadja
     button.style.color = "#FFFFFF"; // Barva besedila
-    button.style.border = "none"; // Odstrani robove
-    button.style.borderRadius = "8px"; // Zaokroži robove
+    button.style.backgroundColor = "rgba(0, 0, 0, 0.9)";
+    button.style.fontFamily = "'Arial', sans-serif";
+    button.style.fontSize = "16px";
+    button.style.borderRadius = "8px";
+    button.style.border = "2px solid rgba(255, 255, 255, 0.3)";
+    button.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.5)";
+    button.style.lineHeight = "1.8";
 
     button.style.zIndex = "1000"; // Postavi gumb nad vse ostale elemente
+}
+
+function displayControls(controlsDiv) {
+    // Add content with arrows
+    controlsDiv.innerHTML = `
+        <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px;">
+            <div><strong>W</strong> <span style="margin-left: 15px;"></span> <span style="color: #4caf50;">↑ UP</span></div>
+            <div><strong>A</strong> <span style="margin-left: 15px;"></span> <span style="color: #4caf50;">← LEFT</span></div>
+            <div><strong>S</strong> <span style="margin-left: 15px;"></span> <span style="color: #4caf50;">↓ DOWN</span></div>
+            <div><strong>D</strong> <span style="margin-left: 15px;"></span> <span style="color: #4caf50;">→ RIGHT</span></div>
+            <div><strong>Q E</strong> <span style="margin-left: 5px;"></span> <span style="color: #2196f3;">↺/↻ YAW</span></div>
+            <div><strong>X C</strong> <span style="margin-left: 5px;"></span> <span style="color: #ff5722;">↑/↓ PITCH</span></div>
+        </div>
+    `;
+
+    // Style the container using JavaScript
+    controlsDiv.style.position = "fixed";
+    controlsDiv.style.bottom = "10px";
+    controlsDiv.style.left = "10px";
+    controlsDiv.style.backgroundColor = "rgba(0, 0, 0, 0.9)";
+    controlsDiv.style.color = "white";
+    controlsDiv.style.fontFamily = "'Arial', sans-serif";
+    controlsDiv.style.fontSize = "16px";
+    controlsDiv.style.padding = "15px";
+    controlsDiv.style.borderRadius = "8px";
+    controlsDiv.style.border = "2px solid rgba(255, 255, 255, 0.3)";
+    controlsDiv.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.5)";
+    controlsDiv.style.lineHeight = "1.8";
+    controlsDiv.style.zIndex = "1000"; // Ensure it appears above other elements
 }

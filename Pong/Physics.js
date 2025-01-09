@@ -155,9 +155,8 @@ export class Physics {
 
         return closestTriangle;
     }
-    
+
     resolveCollision(a, b) {
-       
         // Get global space AABBs.
         let aBox = this.getTransformedAABB(a);
         let bBox = this.getTransformedAABB(b);
@@ -170,42 +169,48 @@ export class Physics {
 
         // Check if this node should stop completely
         if (a.ballin) {
-            if (!a.inSound){
-                const bounceAudio = new Audio('./audio/any.mp3');
-                this.playBounceSound(bounceAudio,a);
+            if (!a.inSound) {
+                const bounceAudio = new Audio("./audio/any.mp3");
+                this.playBounceSound(bounceAudio, a);
             }
-            
 
             const transform = a.getComponentOfType(Transform);
             if (!transform || a.stopTime) {
                 return;
             }
-            if (transform.translation[2] < -0.18 && transform.translation[2] > -2.69  //nasprotnikova stran mize
-                && transform.translation[0] < 1.81 && transform.translation[0] > -1.81
-                && transform.translation[1] > 0.1 && transform.translation[1] < 0.15 ){
-                    a.theirBounces += 1;
-            }
-            else if (!b.racket){
-
-                if((transform.translation[2] < 2.77 && transform.translation[2] >= 0)  //naša stran mize
-                    && (transform.translation[0] < 1.81 && transform.translation[0] > -1.81) 
-                    && (transform.translation[1] > 0.1 && transform.translation[1] < 0.15)){
-                        a.ourBounces += 1;
-                        if(a.ourBounces == 2){
-                            console.log("LOSE")
-                            this.winLose(false,a);
-                        }
-                }else{
-                    if (a.theirBounces == 2 && !a.winAnimation){
+            if (
+                transform.translation[2] < -0.18 &&
+                transform.translation[2] > -2.69 && //nasprotnikova stran mize
+                transform.translation[0] < 1.81 &&
+                transform.translation[0] > -1.81 &&
+                transform.translation[1] > 0.1 &&
+                transform.translation[1] < 0.15
+            ) {
+                a.theirBounces += 1;
+            } else if (!b.racket) {
+                if (
+                    transform.translation[2] < 2.77 &&
+                    transform.translation[2] >= 0 && //naša stran mize
+                    transform.translation[0] < 1.81 &&
+                    transform.translation[0] > -1.81 &&
+                    transform.translation[1] > 0.1 &&
+                    transform.translation[1] < 0.15
+                ) {
+                    a.ourBounces += 1;
+                    if (a.ourBounces == 2) {
+                        console.log("LOSE");
+                        this.winLose(false, a);
+                    }
+                } else {
+                    if (a.theirBounces == 2 && !a.winAnimation) {
                         //ce smo znotraj animacije se tocke od nadaljnih odbojev ne stejejo.
-                        console.log("zmaga runde")
+                        console.log("zmaga runde");
                         let score_button = document.getElementById("score_button");
                         score_button.innerText = "Stevilo tock: " + ++a.score;
-                        this.winLose(true,a);
-                        
-                    }else{
-                        console.log("LOSE")
-                        this.winLose(false,a);
+                        this.winLose(true, a);
+                    } else {
+                        console.log("LOSE");
+                        this.winLose(false, a);
                     }
                 }
             }
@@ -281,7 +286,7 @@ export class Physics {
             let aBox = this.getTransformedAABB(a);
             let bBox = this.getTransformedAABB(b);
             isColliding = this.aabbIntersection(aBox, bBox);
-            
+
             a.coll = false;
             return;
         } else {
@@ -325,14 +330,13 @@ export class Physics {
         }
     }
 
-
-    winLose(outcome, ball){
-        if (ball.winAnimation){
+    winLose(outcome, ball) {
+        if (ball.winAnimation) {
             return;
         }
         ball.winAnimation = true;
         // Ustvari element za besedilo
-        const winText = document.createElement('div');
+        const winText = document.createElement("div");
         document.body.appendChild(winText); // Dodaj element v telo dokumenta
 
         // Stiliziraj besedilo
@@ -351,10 +355,9 @@ export class Physics {
         winText.style.transform = "translate(-50%, -50%) scale(0.5)"; // Začetna velikost
         winText.style.transition = "all 0.8s ease"; // Animacija za prehod
 
-        if(outcome){
+        if (outcome) {
             winText.innerText = "Won Round"; // Nastavi besedilo
-
-        }else{
+        } else {
             winText.innerText = "Lost Round"; // Nastavi besedilo
         }
         // Prikaži besedilo z animacijo
@@ -365,20 +368,17 @@ export class Physics {
 
         // Po določenem času skrij besedilo (neobvezno)
         setTimeout(() => {
-            
             winText.style.opacity = "0";
             winText.style.transform = "translate(-50%, -50%) scale(0.5)";
             setTimeout(() => {
                 ball.winAnimation = false;
                 console.log("RESET GAME");
-                if (!outcome){
+                if (!outcome) {
                     ball.score = 0;
                     score_button.innerText = "Stevilo tock: " + ball.score;
-                    
-                   
                 }
-                
-                let lopar_transform = ball.lopar.getComponentOfType(Transform);  
+
+                let lopar_transform = ball.lopar.getComponentOfType(Transform);
                 lopar_transform.translation[0] = 0;
                 lopar_transform.translation[1] = 0.5;
                 lopar_transform.translation[2] = 2.42;
@@ -392,12 +392,12 @@ export class Physics {
         }, 3000); // Prikaži besedilo za 3 sekunde
     }
 
-    prepareRound(ball){
+    prepareRound(ball) {
         ball.theirBounces = 0;
         ball.ourBounces = 0;
 
-
         ball.stopTime = true;
+        ball.roundCountdown = true;
         const randomIndex = Math.floor(Math.random() * ball.positions.length);
         let ball_transform = ball.getComponentOfType(Transform);
         ball_transform.translation[0] = ball.positions[randomIndex][0][0];
@@ -410,7 +410,7 @@ export class Physics {
         console.log("Žoga bo sproščena čez 5 sekund...");
 
         // Ustvari timer za odštevanje
-        const timerText = document.createElement('div');
+        const timerText = document.createElement("div");
         document.body.appendChild(timerText);
 
         // Stiliziraj timer
@@ -441,6 +441,7 @@ export class Physics {
                 }, 1000); // Po sekundi odstrani "GO!"
                 clearInterval(interval); // Ustavi odštevanje
                 ball.stopTime = false; // Sprosti žogo
+                ball.roundCountdown = false;
                 console.log("Žoga je sproščena!");
             }
         }, 1000); // Posodobi vsakih 1000 ms (1 sekunda)
@@ -448,22 +449,25 @@ export class Physics {
 
     // Funkcija za predvajanje zvoka
     playBounceSound(bounceAudio, ball) {
-        
         if (!ball.inSound) {
             ball.inSound = true; // Nastavi, da se zvok trenutno predvaja
             bounceAudio.currentTime = 0; // Začni od začetka
-            bounceAudio.play()
+            bounceAudio
+                .play()
                 .then(() => {
                     // Ko se zvok začne predvajati, dodaj poslušalec za konec
-                    bounceAudio.addEventListener('ended', () => {
-                        ball.inSound = false; // Zvok je končan
-                    }, { once: true }); // Poslušalec se odstrani po prvem klicu
+                    bounceAudio.addEventListener(
+                        "ended",
+                        () => {
+                            ball.inSound = false; // Zvok je končan
+                        },
+                        { once: true }
+                    ); // Poslušalec se odstrani po prvem klicu
                 })
-                .catch(error => {
+                .catch((error) => {
                     console.log("Zvok ni mogoče predvajati:", error);
                     ball.inSound = false; // Če pride do napake, omogoči ponovni zvok
                 });
         }
-
     }
 }
