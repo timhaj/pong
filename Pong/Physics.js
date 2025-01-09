@@ -1,7 +1,6 @@
 import { vec3, mat4 } from "glm";
 import { getGlobalModelMatrix } from "engine/core/SceneUtils.js";
 import { Transform, Model } from "engine/core.js";
-
 export class Physics {
     constructor(scene) {
         this.scene = scene;
@@ -158,6 +157,7 @@ export class Physics {
     }
 
     resolveCollision(a, b) {
+       
         // Get global space AABBs.
         let aBox = this.getTransformedAABB(a);
         let bBox = this.getTransformedAABB(b);
@@ -188,22 +188,16 @@ export class Physics {
                         if(a.ourBounces == 2){
                             console.log("LOSE")
                             this.winLose(false,a);
-                            //pokazi na zaslon da je zgubil
-                            //natavi timer 3s
-                            //ponastavi game
                         }
-                    
                 }else{
-                    if (a.theirBounces == 2){
+                    if (a.theirBounces == 2 && !a.winAnimation){
+                        //ce smo znotraj animacije se tocke od nadaljnih odbojev ne stejejo.
                         console.log("zmaga runde")
                         let score_button = document.getElementById("score_button");
                         score_button.innerText = "Stevilo tock: " + ++a.score;
-                         this.winLose(true,a);
-                    }else if(a.theirBounces > 2){
-                        console.log("LOSE")
-                        this.winLose(false,a);
-                    }
-                    else{
+                        this.winLose(true,a);
+                        
+                    }else{
                         console.log("LOSE")
                         this.winLose(false,a);
                     }
@@ -211,9 +205,7 @@ export class Physics {
             }
 
             a.coll = true;
-            
             a.velocity[1] = -a.velocity[1] * a.restitution;
-
             let model = b.getComponentOfType(Model);
 
             const rayOrigin = transform.translation;
@@ -373,15 +365,78 @@ export class Physics {
             setTimeout(() => {
                 ball.winAnimation = false;
                 console.log("RESET GAME");
-                /*
-                    IGRA SE KONČA
-                    POSODOBI SE COUNTER ZA TOCKE, CE SMO ZMAGAL SE PUSTI TAKEGA KOT JE 
-                    TIME FREEZE GRE NA FALSE
-                */
+                if (!outcome){
+                    ball.score = 0;
+                    score_button.innerText = "Stevilo tock: " + ball.score;
+                    
+                   
+                }
+                
+                let lopar_transform = ball.lopar.getComponentOfType(Transform);  
+                lopar_transform.translation[0] = 0;
+                lopar_transform.translation[1] = 0.5;
+                lopar_transform.translation[2] = 2.42;
+                lopar_transform.rotation[0] = -0.4910048246383667;
+                lopar_transform.rotation[1] = 0.49120259284973145;
+                lopar_transform.rotation[2] = -0.5052257776260376;
+                lopar_transform.rotation[3] = 0.5122316479682922;
+                this.prepareRound(ball);
                 winText.remove(); // Odstrani element po animaciji
             }, 800); // Počakaj, da se animacija zaključi
         }, 3000); // Prikaži besedilo za 3 sekunde
     }
 
+    prepareRound(ball){
+        ball.theirBounces = 0;
+        ball.ourBounces = 0;
 
+
+        ball.stopTime = true;
+        const randomIndex = Math.floor(Math.random() * ball.positions.length);
+        let ball_transform = ball.getComponentOfType(Transform);
+        ball_transform.translation[0] = ball.positions[randomIndex][0][0];
+        ball_transform.translation[1] = ball.positions[randomIndex][0][1];
+        ball_transform.translation[2] = ball.positions[randomIndex][0][2];
+        ball.velocity[0] = ball.positions[randomIndex][1][0];
+        ball.velocity[1] = ball.positions[randomIndex][1][1];
+        ball.velocity[2] = ball.positions[randomIndex][1][2];
+
+        console.log("Žoga bo sproščena čez 5 sekund...");
+
+        // Ustvari timer za odštevanje
+        const timerText = document.createElement('div');
+        document.body.appendChild(timerText);
+
+        // Stiliziraj timer
+        timerText.style.position = "fixed";
+        timerText.style.top = "50%";
+        timerText.style.left = "50%";
+        timerText.style.transform = "translate(-50%, -50%)";
+        timerText.style.fontFamily = "'Arial', sans-serif";
+        timerText.style.fontSize = "8rem";
+        timerText.style.fontWeight = "bold";
+        timerText.style.color = "#fff";
+        timerText.style.textAlign = "center";
+        timerText.style.textShadow = "2px 2px 10px rgba(0, 0, 0, 0.8), 0 0 15px #f4a261";
+        timerText.style.zIndex = "1000"; // Nad vsemi elementi
+
+        // Odštevanje
+        let countdown = 5;
+        timerText.innerText = countdown;
+
+        const interval = setInterval(() => {
+            countdown--;
+            if (countdown > 0) {
+                timerText.innerText = countdown; // Posodobi časovnik
+            } else {
+                timerText.innerText = "PONG!"; // Prikaz "GO!"
+                setTimeout(() => {
+                    document.body.removeChild(timerText); // Odstrani timer z zaslona
+                }, 1000); // Po sekundi odstrani "GO!"
+                clearInterval(interval); // Ustavi odštevanje
+                ball.stopTime = false; // Sprosti žogo
+                console.log("Žoga je sproščena!");
+            }
+        }, 1000); // Posodobi vsakih 1000 ms (1 sekunda)
+    }
 }

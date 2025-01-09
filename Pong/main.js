@@ -17,6 +17,7 @@ import {
 import { Physics } from "./Physics.js";
 import { Light } from "../engine/renderers/Light.js";
 
+
 const canvas = document.querySelector("canvas");
 const renderer = new LitRenderer(canvas);
 
@@ -60,6 +61,7 @@ lopar.aabb = {
 };
 lopar.racket = true;
 
+
 const ball = loader.loadNode("Sphere");
 let score = document.createElement("button");
 score.id = "score_button";
@@ -75,13 +77,15 @@ Object.assign(ball, {
     restitution: 0.8,
     friction: 0.92,
     airResistance: 0.02,
-    deltaTime: 1 / 1000,
+    deltaTime: 1 / 500,
     coll: false,
     stopTime: false,
     ourBounces: 0,
     theirBounces: 0,
     score: 0,
     winAnimation: false,
+    lopar: lopar,
+    positions: [[ [-1,1,-5],[2,0,6] ]],
 });
 
 let ball_t = ball.getComponentOfType(Transform);
@@ -121,6 +125,9 @@ ball.addComponent({
             }
         }
         updateBallPositionWithCollision();
+
+
+
     },
 });
 
@@ -147,13 +154,13 @@ function keyupHandler(e) {
     keys[e.code] = false;
 }
 
-lopar.addComponent({
+ball.lopar.addComponent({
     //premikanje loparja ko smo za mizo
     update(t, dt) {
         if (!game_mode) {
             return;
         }
-        const transform = lopar.getComponentOfType(Transform);
+        const transform = ball.lopar.getComponentOfType(Transform);
 
         //boundries
         if (transform.translation[1] < 0.53) {
@@ -273,7 +280,6 @@ function update(time, dt) {
             component.update?.(time, dt);
         }
     });
-
     physics.update(time, dt);
 }
 
@@ -512,7 +518,8 @@ function game_gumb(button) {
 
             } else {
                 //pride v FP
-
+                ball.score = 0; //reset score
+                //STOP TIME????
                 camera = null;
                 camera = loader.loadNode("Camera");
                 camera.removeComponentsOfType(TouchController);
