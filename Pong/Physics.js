@@ -155,7 +155,7 @@ export class Physics {
 
         return closestTriangle;
     }
-
+    
     resolveCollision(a, b) {
        
         // Get global space AABBs.
@@ -170,6 +170,12 @@ export class Physics {
 
         // Check if this node should stop completely
         if (a.ballin) {
+            if (!a.inSound){
+                const bounceAudio = new Audio('./audio/any.mp3');
+                this.playBounceSound(bounceAudio,a);
+            }
+            
+
             const transform = a.getComponentOfType(Transform);
             if (!transform || a.stopTime) {
                 return;
@@ -438,5 +444,26 @@ export class Physics {
                 console.log("Žoga je sproščena!");
             }
         }, 1000); // Posodobi vsakih 1000 ms (1 sekunda)
+    }
+
+    // Funkcija za predvajanje zvoka
+    playBounceSound(bounceAudio, ball) {
+        
+        if (!ball.inSound) {
+            ball.inSound = true; // Nastavi, da se zvok trenutno predvaja
+            bounceAudio.currentTime = 0; // Začni od začetka
+            bounceAudio.play()
+                .then(() => {
+                    // Ko se zvok začne predvajati, dodaj poslušalec za konec
+                    bounceAudio.addEventListener('ended', () => {
+                        ball.inSound = false; // Zvok je končan
+                    }, { once: true }); // Poslušalec se odstrani po prvem klicu
+                })
+                .catch(error => {
+                    console.log("Zvok ni mogoče predvajati:", error);
+                    ball.inSound = false; // Če pride do napake, omogoči ponovni zvok
+                });
+        }
+
     }
 }

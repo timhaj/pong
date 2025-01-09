@@ -86,6 +86,7 @@ Object.assign(ball, {
     winAnimation: false,
     lopar: lopar,
     positions: [[ [-1,1,-5],[2,0,6] ]],
+    inSound: false,
 });
 
 let ball_t = ball.getComponentOfType(Transform);
