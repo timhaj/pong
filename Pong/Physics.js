@@ -170,11 +170,48 @@ export class Physics {
 
         // Check if this node should stop completely
         if (a.ballin) {
-            a.coll = true;
             const transform = a.getComponentOfType(Transform);
             if (!transform || a.stopTime) {
                 return;
             }
+            if (transform.translation[2] < -0.18 && transform.translation[2] > -2.69  //nasprotnikova stran mize
+                && transform.translation[0] < 1.81 && transform.translation[0] > -1.81
+                && transform.translation[1] > 0.1 && transform.translation[1] < 0.15 ){
+                    a.theirBounces += 1;
+            }
+            else if (!b.racket){
+
+                if((transform.translation[2] < 2.77 && transform.translation[2] >= 0)  //naša stran mize
+                    && (transform.translation[0] < 1.81 && transform.translation[0] > -1.81) 
+                    && (transform.translation[1] > 0.1 && transform.translation[1] < 0.15)){
+                        a.ourBounces += 1;
+                        if(a.ourBounces == 2){
+                            console.log("LOSE")
+                            this.winLose(false,a);
+                            //pokazi na zaslon da je zgubil
+                            //natavi timer 3s
+                            //ponastavi game
+                        }
+                    
+                }else{
+                    if (a.theirBounces == 2){
+                        console.log("zmaga runde")
+                        let score_button = document.getElementById("score_button");
+                        score_button.innerText = "Stevilo tock: " + ++a.score;
+                         this.winLose(true,a);
+                    }else if(a.theirBounces > 2){
+                        console.log("LOSE")
+                        this.winLose(false,a);
+                    }
+                    else{
+                        console.log("LOSE")
+                        this.winLose(false,a);
+                    }
+                }
+            }
+
+            a.coll = true;
+            
             a.velocity[1] = -a.velocity[1] * a.restitution;
 
             let model = b.getComponentOfType(Model);
@@ -246,10 +283,8 @@ export class Physics {
             let aBox = this.getTransformedAABB(a);
             let bBox = this.getTransformedAABB(b);
             isColliding = this.aabbIntersection(aBox, bBox);
-            if (!isColliding) {
-                //??? POWERMETER strenght apply???
-                a.coll = false;
-            }
+            
+            a.coll = false;
             return;
         } else {
             // Smooth sliding behavior (existing code)
@@ -291,4 +326,62 @@ export class Physics {
             vec3.add(transform.translation, transform.translation, minDirection);
         }
     }
+
+
+    winLose(outcome, ball){
+        if (ball.winAnimation){
+            return;
+        }
+        ball.winAnimation = true;
+        // Ustvari element za besedilo
+        const winText = document.createElement('div');
+        document.body.appendChild(winText); // Dodaj element v telo dokumenta
+
+        // Stiliziraj besedilo
+        winText.style.position = "fixed";
+        winText.style.top = "50%";
+        winText.style.left = "50%";
+        winText.style.transform = "translate(-50%, -50%)";
+        winText.style.fontFamily = "'Arial', sans-serif";
+        winText.style.fontSize = "5rem";
+        winText.style.fontWeight = "bold";
+        winText.style.color = "#fff";
+        winText.style.textAlign = "center";
+        winText.style.textShadow = "2px 2px 10px rgba(0, 0, 0, 0.8), 0 0 15px #f4a261";
+        winText.style.zIndex = "1000"; // Preko vseh drugih elementov
+        winText.style.opacity = "0"; // Začetna vrednost za animacijo
+        winText.style.transform = "translate(-50%, -50%) scale(0.5)"; // Začetna velikost
+        winText.style.transition = "all 0.8s ease"; // Animacija za prehod
+
+        if(outcome){
+            winText.innerText = "Won Round"; // Nastavi besedilo
+
+        }else{
+            winText.innerText = "Lost Round"; // Nastavi besedilo
+        }
+        // Prikaži besedilo z animacijo
+        setTimeout(() => {
+            winText.style.opacity = "1";
+            winText.style.transform = "translate(-50%, -50%) scale(1)";
+        }, 10);
+
+        // Po določenem času skrij besedilo (neobvezno)
+        setTimeout(() => {
+            
+            winText.style.opacity = "0";
+            winText.style.transform = "translate(-50%, -50%) scale(0.5)";
+            setTimeout(() => {
+                ball.winAnimation = false;
+                console.log("RESET GAME");
+                /*
+                    IGRA SE KONČA
+                    POSODOBI SE COUNTER ZA TOCKE, CE SMO ZMAGAL SE PUSTI TAKEGA KOT JE 
+                    TIME FREEZE GRE NA FALSE
+                */
+                winText.remove(); // Odstrani element po animaciji
+            }, 800); // Počakaj, da se animacija zaključi
+        }, 3000); // Prikaži besedilo za 3 sekunde
+    }
+
+
 }

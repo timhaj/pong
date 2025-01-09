@@ -58,13 +58,19 @@ lopar.aabb = {
     min: [-0.2, -2, -0.2],
     max: [0.2, 2, 0.2],
 };
+lopar.racket = true;
 
 const ball = loader.loadNode("Sphere");
+let score = document.createElement("button");
+score.id = "score_button";
+score.hidden = true;
+document.body.appendChild(score);
+showScore(score);
 
 Object.assign(ball, {
     isDynamic: true,
     ballin: true,
-    velocity: [2, 0, 5],
+    velocity: [2, 0, 6],
     acceleration: [0, -9.8, 0],
     restitution: 0.8,
     friction: 0.92,
@@ -72,15 +78,24 @@ Object.assign(ball, {
     deltaTime: 1 / 1000,
     coll: false,
     stopTime: false,
+    ourBounces: 0,
+    theirBounces: 0,
+    score: 0,
+    winAnimation: false,
 });
 
 let ball_t = ball.getComponentOfType(Transform);
-ball_t.translation = [-0.5, 1.5, -1];
+ball_t.translation = [-1, 1, -5];
+
+
+
+
 
 ball.addComponent({
     //gravitacija
     update(t, dt) {
         function updateBallPositionWithCollision() {
+           
             if (ball.stopTime) {
                 return;
             }
@@ -89,7 +104,7 @@ ball.addComponent({
             ball.velocity[0] -= ball.velocity[0] * ball.airResistance * ball.deltaTime; // Drag on x-axis
             ball.velocity[2] -= ball.velocity[2] * ball.airResistance * ball.deltaTime; // Drag on y-axis
 
-            //console.log(JSON.stringify(ball.velocity[1]));
+            //console.log(JSON.stringify(ball.velocity));
             // Update position with velocity
             if (!ball.coll && !ball.stopTime) {
                 ball_t.translation[1] += ball.velocity[1] * ball.deltaTime; // Y movement
@@ -117,6 +132,8 @@ let keys = {
     KeyS: false,
     KeyQ: false,
     KeyE: false,
+    KeyX: false,
+    KeyC: false,
 };
 
 document.addEventListener("keydown", keydownHandler);
@@ -192,6 +209,17 @@ lopar.addComponent({
         if (keys["KeyE"]) {
             const deltaRotation = quat.create();
             quat.setAxisAngle(deltaRotation, [0, 1, 0], -rotationSpeed);
+            quat.multiply(transform.rotation, deltaRotation, transform.rotation);
+        }
+        // Vertical rotation (pitch) with X and C
+        if (keys["KeyX"]) {
+            const deltaRotation = quat.create();
+            quat.setAxisAngle(deltaRotation, [1, 0, 0], rotationSpeed); // Rotacija okrog osi X
+            quat.multiply(transform.rotation, deltaRotation, transform.rotation);
+        }
+        if (keys["KeyC"]) {
+            const deltaRotation = quat.create();
+            quat.setAxisAngle(deltaRotation, [1, 0, 0], -rotationSpeed); // Rotacija okrog osi X
             quat.multiply(transform.rotation, deltaRotation, transform.rotation);
         }
     },
@@ -479,6 +507,9 @@ function game_gumb(button) {
                 camera.removeComponentsOfType(FirstPersonController);
                 camera.addComponent(new TouchController(camera, canvas, { distance: 5 }));
                 document.body.appendChild(button_stopTime);
+                score.hidden = false;
+
+
             } else {
                 //pride v FP
 
@@ -490,6 +521,7 @@ function game_gumb(button) {
                 if (document.getElementById("button_stopTime")) {
                     document.body.removeChild(button_stopTime);
                 }
+                score.hidden = true;
                 const transform = camera.getComponentOfType(Transform);
                 transform.translation = [0, 1, 5];
             }
@@ -532,4 +564,25 @@ function stopTime_gumb(button) {
             ball.stopTime = !ball.stopTime;
         }
     });
+}
+
+function showScore(button){
+    button.innerText = "Stevilo tock: 0"; // Besedilo na gumbu
+
+    // Nastavitve stila za gumb
+    button.style.position = "absolute";
+    button.style.transform = "translateX(-50%)"; // Centriranje gumba na sredino
+    button.style.top = "10px"; // Razdalja od vrha
+    button.style.left = "50%"; // Centriranje od levega roba
+    button.style.width = "150px"; // Širina gumba
+    button.style.height = "50px"; // Višina gumba
+    button.style.fontSize = "16px"; // Velikost pisave
+    button.style.textAlign = "center"; // Poravnava besedila na sredino
+    button.style.lineHeight = "50px"; // Vertikalna poravnava besedila
+    button.style.backgroundColor = "#007BFF"; // Barva ozadja
+    button.style.color = "#FFFFFF"; // Barva besedila
+    button.style.border = "none"; // Odstrani robove
+    button.style.borderRadius = "8px"; // Zaokroži robove
+
+    button.style.zIndex = "1000"; // Postavi gumb nad vse ostale elemente
 }
