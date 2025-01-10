@@ -357,8 +357,18 @@ export class Physics {
 
         if (outcome) {
             winText.innerText = "Won Round"; // Nastavi besedilo
+            //TOLE JE MOJE
+            const video = document.getElementById('winVideo');
+            video.style.display = 'block';
+            video.play();
+            // KONEC MOJEGA
         } else {
             winText.innerText = "Lost Round"; // Nastavi besedilo
+            //TOLE JE MOJE
+            const video2 = document.getElementById('winVideo2');
+            video2.style.display = 'block';
+            video2.play();
+            // KONEC MOJEGA
         }
         // Prikaži besedilo z animacijo
         setTimeout(() => {
@@ -371,6 +381,28 @@ export class Physics {
             winText.style.opacity = "0";
             winText.style.transform = "translate(-50%, -50%) scale(0.5)";
             setTimeout(() => {
+
+
+                //TOLE JE MOJE
+
+
+                const video = document.getElementById('winVideo2');
+                video.pause();
+                video.currentTime = 0; // Reset the video to the beginning
+                video.style.display = 'none'; // Hide the video if needed
+
+                const video2 = document.getElementById('winVideo');
+                video2.pause();
+                video2.currentTime = 0; // Reset the video to the beginning
+                video2.style.display = 'none'; // Hide the video if needed
+
+
+                // KONEC MOJEGA
+
+
+
+
+
                 ball.winAnimation = false;
                 console.log("RESET GAME");
                 if (!outcome) {
