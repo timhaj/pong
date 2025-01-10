@@ -15,35 +15,23 @@
     <script type="module" src="main.js"></script>
     <link rel="stylesheet" href="../../../engine/style.css">
     <style>
-        #winVideo {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+        #winAudio {
             display: none;
-            z-index: 10; /* Ensures it is above the canvas */
         }
-        #winVideo2 {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+        #loseAudio {
             display: none;
-            z-index: 10; /* Ensures it is above the canvas */
         }
     </style>
 </head>
 <body>
     <div class="fullscreen no-touch pixelated">
         <canvas></canvas>
-            <video id="winVideo" width="640" height="360" controls>
-        <source src="video.mp4" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
-            <video id="winVideo2" width="640" height="360" controls>
-        <source src="video2.mp4" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
+        <audio id="winAudio">
+            <source src="./audio/win.mp3" type="audio/mpeg">
+        </audio>
+        <audio id="loseAudio">
+            <source src="./audio/lose.mp3" type="audio/mpeg">
+        </audio>
     </div>
 </body>
 </html>
