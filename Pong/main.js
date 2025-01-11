@@ -87,11 +87,36 @@ Object.assign(ball, {
     score: 0,
     winAnimation: false,
     lopar: lopar,
-    positions: [
+    positions: [ //first index is position, second starting velocity
+        //starting from the left
         [
-            [-1, 1, -5],
+            [-1, 1, -5], //HARD 
             [2, 0, 6],
         ],
+        [ 
+            [-3, 1, -5], //EZ 
+            [3, 0, 6],
+        ],
+        [ 
+            [-3, 1.5, -5], //MID
+            [3, 0, 6],
+        ],
+        [ 
+            [-1, 1, -5], //MID
+            [1.3, 0, 8],
+        ],
+        
+        //starting from the right
+        [ 
+            [2.5, 1, -5], //FUN/MID
+            [-2.5, 0, 6],
+        ],
+        [ 
+            [1, 1.2, -5], //EZ
+            [-1, 0, 7],
+        ],
+    
+        
     ],
     inSound: false,
     roundCountdown: false,

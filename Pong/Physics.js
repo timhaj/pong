@@ -202,7 +202,7 @@ export class Physics {
                         this.winLose(false, a);
                     }
                 } else {
-                    if (a.theirBounces == 2 && !a.winAnimation) {
+                    if (a.theirBounces == 2 && !a.winAnimation && a.ourBounces == 0) {
                         //ce smo znotraj animacije se tocke od nadaljnih odbojev ne stejejo.
                         console.log("zmaga runde");
                         let score_button = document.getElementById("score_button");
