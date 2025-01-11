@@ -23,11 +23,11 @@ const renderer = new LitRenderer(canvas);
 await renderer.initialize();
 
 const loader = new GLTFLoader();
-//await loader.load(new URL('./scene/scene.gltf', import.meta.url));
 await loader.load(new URL("./scene/pingpong_final_texture_fixed.gltf", import.meta.url));
 
 const scene = loader.loadScene(loader.defaultScene);
 
+// kamera
 let camera = loader.loadNode("Camera");
 camera.addComponent(new FirstPersonController(camera, canvas));
 camera.isDynamic = true;
@@ -35,42 +35,53 @@ camera.aabb = {
     min: [-1, -1, -1],
     max: [1, 1, 1],
 };
-const camera_transform = camera.getComponentOfType(Transform); //dolocimo zacetne pozicije kamere
-camera_transform.translation = [0, 1, 5];
+const camera_transform = camera.getComponentOfType(Transform);
+camera_transform.translation = [0, 1, 5]; // dolocimo zacetne pozicije kamere
 
+// enter game gumb
 let button = document.createElement("button");
 button.id = "game_button";
 game_gumb(button);
 
+// stop gumb
 let button_stopTime = document.createElement("button");
 button_stopTime.id = "button_stopTime";
 stopTime_gumb(button_stopTime);
 
+// guide div
 const controlsDiv = document.createElement("div");
 controlsDiv.id = "controlsDiv";
 displayControls(controlsDiv);
 
+// nalozimo komponente iz .gltf in jih damo na static
 LoadOurNodes();
+
+
+// nalozimo luci
 add_light();
 
-let game_mode = false; //za spreminjanje kamere false je FP, true je TOUCH
-let game_zone = false; //pregleduje ce smo v coni igranja
+let game_mode = false; // za spreminjanje kamere false je FP, true je TOUCH
+let game_zone = false; // pregleduje ce smo v coni igranja
 
+// lopar
 const lopar = loader.loadNode("Circle");
-loader.loadNode("Plane").isStatic = true;
 lopar.aabb = {
     min: [-0.2, -2, -0.2],
     max: [0.2, 2, 0.2],
 };
 lopar.racket = true;
 
+// ball
 const ball = loader.loadNode("Sphere");
+
+// score div
 let score = document.createElement("button");
 score.id = "score_button";
 score.hidden = true;
 document.body.appendChild(score);
 showScore(score);
 
+// ball object
 Object.assign(ball, {
     isDynamic: true,
     ballin: true,
@@ -87,58 +98,54 @@ Object.assign(ball, {
     score: 0,
     winAnimation: false,
     lopar: lopar,
-    positions: [ //first index is position, second starting velocity
-        //starting from the left
+    positions: [ // prvi indeks je pozicija, drugi pa startna hitrost
+        // servira z leve
         [
-            [-1, 1, -5], //HARD 
+            [-1, 1, -5], // hard 
             [2, 0, 6],
         ],
-        [ 
-            [-3, 1, -5], //EZ 
+
+        [
+            [-3, 1, -5], // easy 
             [3, 0, 6],
         ],
-        [ 
-            [-3, 1.5, -5], //MID
+
+        [
+            [-3, 1.5, -5], // mid
             [3, 0, 6],
         ],
-        [ 
-            [-1, 1, -5], //MID
-            [1.3, 0, 8],
-        ],
-        
-        //starting from the right
-        [ 
-            [2.5, 1, -5], //FUN/MID
+        // servira z desne
+        [
+            [2.5, 1, -5], // fun mid
             [-2.5, 0, 6],
         ],
-        [ 
-            [1, 1.2, -5], //EZ
-            [-1, 0, 7],
+
+        [
+            [3, 1, -5], // easy
+            [-3, 0, 6],
         ],
-    
-        
     ],
     inSound: false,
     roundCountdown: false,
 });
 
+// zacetna pozicija zoge
 let ball_t = ball.getComponentOfType(Transform);
 ball_t.translation = [-1, 1, -5];
 
 ball.addComponent({
-    //gravitacija
+    // premikanje zoge
     update(t, dt) {
         function updateBallPositionWithCollision() {
             if (ball.stopTime) {
                 return;
             }
-            ball.velocity[1] += ball.acceleration[1] * ball.deltaTime;
+            ball.velocity[1] += ball.acceleration[1] * ball.deltaTime; // gravitacija
 
-            ball.velocity[0] -= ball.velocity[0] * ball.airResistance * ball.deltaTime; // Drag on x-axis
-            ball.velocity[2] -= ball.velocity[2] * ball.airResistance * ball.deltaTime; // Drag on y-axis
+            ball.velocity[0] -= ball.velocity[0] * ball.airResistance * ball.deltaTime; // upor na x-osi
+            ball.velocity[2] -= ball.velocity[2] * ball.airResistance * ball.deltaTime; // upor na y-osi
 
-            //console.log(JSON.stringify(ball.velocity));
-            // Update position with velocity
+            // posodobimo pozicijo z novo hitrostjo
             if (!ball.coll && !ball.stopTime) {
                 ball_t.translation[1] += ball.velocity[1] * ball.deltaTime; // Y movement
             }
@@ -146,6 +153,7 @@ ball.addComponent({
             ball_t.translation[0] += ball.velocity[0] * ball.deltaTime; // X movement
             ball_t.translation[2] += ball.velocity[2] * ball.deltaTime; // Z movement
 
+            // ce je zanemarljiva hitrost, jo ustavimo
             if (Math.abs(ball.velocity[0]) < 0.065) {
                 ball.velocity[0] = 0;
             }
@@ -157,7 +165,7 @@ ball.addComponent({
     },
 });
 
-//premikanje loparja
+// premikanje loparja
 let keys = {
     KeyW: false,
     KeyA: false,
@@ -181,14 +189,14 @@ function keyupHandler(e) {
 }
 
 ball.lopar.addComponent({
-    //premikanje loparja ko smo za mizo
+    // premikanje loparja ko smo za mizo
     update(t, dt) {
         if (!game_mode) {
             return;
         }
         const transform = ball.lopar.getComponentOfType(Transform);
 
-        //boundries
+        // meje premikanja loparja
         if (transform.translation[1] < 0.53) {
             transform.translation[1] = 0.53;
         }
@@ -232,8 +240,8 @@ ball.lopar.addComponent({
                 transform.translation[2],
             ];
         }
-        // Rotation
-        const rotationSpeed = 0.01; // Speed of rotation
+        // horizontalna rotacija
+        const rotationSpeed = 0.01; // hitrost rotacije
         if (keys["KeyQ"]) {
             const deltaRotation = quat.create();
             quat.setAxisAngle(deltaRotation, [0, 1, 0], rotationSpeed);
@@ -244,32 +252,33 @@ ball.lopar.addComponent({
             quat.setAxisAngle(deltaRotation, [0, 1, 0], -rotationSpeed);
             quat.multiply(transform.rotation, deltaRotation, transform.rotation);
         }
-        // Vertical rotation (pitch) with X and C
+        // vertikalna rotacija (pitch) z X in C (os X)
         if (keys["KeyX"]) {
             const deltaRotation = quat.create();
-            quat.setAxisAngle(deltaRotation, [1, 0, 0], rotationSpeed); // Rotacija okrog osi X
+            quat.setAxisAngle(deltaRotation, [1, 0, 0], rotationSpeed);
             quat.multiply(transform.rotation, deltaRotation, transform.rotation);
         }
         if (keys["KeyC"]) {
             const deltaRotation = quat.create();
-            quat.setAxisAngle(deltaRotation, [1, 0, 0], -rotationSpeed); // Rotacija okrog osi X
+            quat.setAxisAngle(deltaRotation, [1, 0, 0], -rotationSpeed);
             quat.multiply(transform.rotation, deltaRotation, transform.rotation);
         }
     },
 });
 
-// Shranjevanje prejšnjega položaja kamere
+// shranjevanje prejšnjega položaja kamere
 let previousPosition = null;
 
 camera.addComponent({
     update(t, dt) {
         const transform = camera.getComponentOfType(Transform);
 
-        // Shranimo trenutni položaj, če prejšnji še ni bil inicializiran
+        // shranimo trenutni položaj, če prejšnji še ni bil inicializiran
         if (!previousPosition) {
-            previousPosition = { ...transform.translation }; // Kopiramo trenutni položaj
+            previousPosition = { ...transform.translation }; // kopiramo trenutni položaj
         }
 
+        // zraven mize se pokaze ENTER gumb
         if (
             transform.translation[0] < 3 &&
             transform.translation[0] > -3 &&
@@ -288,6 +297,7 @@ camera.addComponent({
     },
 });
 
+// osnovni renderer in requestAnimationFrame
 const physics = new Physics(scene);
 scene.traverse((node) => {
     const model = node.getComponentOfType(Model);
@@ -320,6 +330,7 @@ function resize({ displaySize: { width, height } }) {
 new ResizeSystem({ canvas, resize }).start();
 new UpdateSystem({ update, render }).start();
 
+// nalozimo luci
 function add_light() {
     const light = new Node();
     light.addComponent(
@@ -478,58 +489,59 @@ function add_light() {
     scene.addChild(blue5);
 }
 
+// nalozimo objekte
 function LoadOurNodes() {
     loader.loadNode("Cone").isStatic = true;
     loader.loadNode("Circle").isStatic = true;
     loader.loadNode("Circle.001").isStatic = true;
-
+    loader.loadNode("Plane").isStatic = true;
     loader.loadNode("Cylinder").isStatic = true;
 
     for (let i = 1; i < 47; i++) {
         //1-46
-        let string = "";
-        //if(i >= 100) loader.loadNode("Cylinder."+i).isStatic = true;
         if (i >= 10) loader.loadNode("Cylinder.0" + i).isStatic = true;
         if (i < 10) loader.loadNode("Cylinder.00" + i).isStatic = true;
     }
 
     for (let i = 1; i < 50; i++) {
         //1-49
-        let string = "";
-        if (i >= 100) loader.loadNode("Cube." + i).isStatic = true;
         if (i <= 99 && i >= 10) loader.loadNode("Cube.0" + i).isStatic = true;
         if (i < 10) loader.loadNode("Cube.00" + i).isStatic = true;
     }
 
     for (let i = 1; i < 85; i++) {
         //1-84
-        let string = "";
-        if (i >= 100) loader.loadNode("Plane." + i).isStatic = true;
         if (i <= 99 && i >= 10) loader.loadNode("Plane.0" + i).isStatic = true;
         if (i < 10) loader.loadNode("Plane.00" + i).isStatic = true;
     }
 }
 
+// game gumb functionality
 function game_gumb(button) {
-    button.innerText = "Pritisni enter za začetek"; // Besedilo na gumbu
-
-    // Nastavitve stila za absolutno pozicioniranje nad canvasom
+    button.innerText = "Pritisni ENTER za začetek";
     button.style.position = "absolute";
-    button.style.top = "10px"; // Razdalja od vrha
-    button.style.left = "50%"; // Poravnava na sredino
-    button.style.transform = "translateX(-50%)"; // Centriranje guma na sredino
-    button.style.zIndex = "1000"; // Postavi gumb nad vse ostale elemente
+    button.style.top = "10px";
+    button.style.left = "50%";
+    button.style.transform = "translateX(-50%)";
+    button.style.color = "#FFFFFF";
+    button.style.backgroundColor = "rgba(0, 0, 0, 0.9)";
+    button.style.fontFamily = "'Arial', sans-serif";
+    button.style.fontSize = "16px";
+    button.style.borderRadius = "8px";
+    button.style.border = "2px solid rgba(255, 255, 255, 0.3)";
+    button.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.5)";
+    button.style.lineHeight = "1.8";
+    button.style.zIndex = "1000";
 
     document.addEventListener("keydown", (event) => {
         if (
             (event.key === "Enter" && game_zone && !game_mode) ||
             (event.key === "Enter" && game_mode)
         ) {
-            // Preveri, ali je bila pritisnjena tipka Enter
-            game_mode = !game_mode; // Obrne vrednost game_mode (true/false)
+            // preveri, ali je bila pritisnjena tipka Enter
+            game_mode = !game_mode; // obrne vrednost game_mode (true/false)
             if (game_mode) {
-                //FP -> TOUCH
-
+                // pride iz FP -> TOUCH
                 camera = null;
                 camera = loader.loadNode("Camera");
                 camera.removeComponentsOfType(FirstPersonController);
@@ -538,14 +550,12 @@ function game_gumb(button) {
                 document.body.appendChild(controlsDiv);
                 score.hidden = false;
             } else {
-                //pride v FP
-                ball.score = 0; //reset score
-                //STOP TIME????
+                //pride iz TOUCH -> FP
+                ball.score = 0; // reset score
                 camera = null;
                 camera = loader.loadNode("Camera");
                 camera.removeComponentsOfType(TouchController);
                 camera.addComponent(new FirstPersonController(camera, canvas));
-
                 if (document.getElementById("button_stopTime")) {
                     document.body.removeChild(button_stopTime);
                 }
@@ -565,17 +575,16 @@ function game_gumb(button) {
     });
 }
 
+// stop time functionality
 function stopTime_gumb(button) {
-    button.innerText = "Stop Time [T]"; // Besedilo na gumbu
-
-    // Nastavitve stila za gumb
+    button.innerText = "Stop Time [T]";
     button.style.position = "absolute";
-    button.style.top = "10px"; // Razdalja od vrha
-    button.style.right = "10px"; // Razdalja od desnega roba
-    button.style.width = "150px"; // Širina gumba
-    button.style.height = "50px"; // Višina gumba
-    button.style.textAlign = "center"; // Poravnava besedila na sredino
-    button.style.color = "#FFFFFF"; // Barva besedila
+    button.style.top = "10px";
+    button.style.right = "10px";
+    button.style.width = "150px";
+    button.style.height = "50px";
+    button.style.textAlign = "center";
+    button.style.color = "#FFFFFF";
     button.style.backgroundColor = "rgba(0, 0, 0, 0.9)";
     button.style.fontFamily = "'Arial', sans-serif";
     button.style.fontSize = "16px";
@@ -583,16 +592,14 @@ function stopTime_gumb(button) {
     button.style.border = "2px solid rgba(255, 255, 255, 0.3)";
     button.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.5)";
     button.style.lineHeight = "1.8";
+    button.style.zIndex = "1000";
 
-    button.style.zIndex = "1000"; // Postavi gumb nad vse ostale elemente
-
-    // Dodaj event listener za tipko T
     document.addEventListener("keydown", (event) => {
         if ((event.key === "T" || event.key === "t") && game_mode && !ball.roundCountdown) {
             if (ball.stopTime) {
-                button.innerText = "Stop Time [T]"; // Besedilo na gumbu
+                button.innerText = "Stop Time [T]";
             } else {
-                button.innerText = "Time stopped"; // Besedilo na gumbu
+                button.innerText = "Time stopped";
             }
             ball.stopTime = !ball.stopTime;
         }
@@ -600,17 +607,15 @@ function stopTime_gumb(button) {
 }
 
 function showScore(button) {
-    button.innerText = "Stevilo tock: 0"; // Besedilo na gumbu
-
-    // Nastavitve stila za gumb
+    button.innerText = "Stevilo tock: 0";
     button.style.position = "absolute";
-    button.style.transform = "translateX(-50%)"; // Centriranje gumba na sredino
-    button.style.top = "10px"; // Razdalja od vrha
-    button.style.left = "50%"; // Centriranje od levega roba
-    button.style.width = "150px"; // Širina gumba
-    button.style.height = "50px"; // Višina gumba
-    button.style.textAlign = "center"; // Poravnava besedila na sredino
-    button.style.color = "#FFFFFF"; // Barva besedila
+    button.style.transform = "translateX(-50%)";
+    button.style.top = "10px";
+    button.style.left = "50%";
+    button.style.width = "150px";
+    button.style.height = "50px";
+    button.style.textAlign = "center";
+    button.style.color = "#FFFFFF";
     button.style.backgroundColor = "rgba(0, 0, 0, 0.9)";
     button.style.fontFamily = "'Arial', sans-serif";
     button.style.fontSize = "16px";
@@ -618,24 +623,20 @@ function showScore(button) {
     button.style.border = "2px solid rgba(255, 255, 255, 0.3)";
     button.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.5)";
     button.style.lineHeight = "1.8";
-
-    button.style.zIndex = "1000"; // Postavi gumb nad vse ostale elemente
+    button.style.zIndex = "1000";
 }
 
 function displayControls(controlsDiv) {
-    // Add content with arrows
     controlsDiv.innerHTML = `
         <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 8px;">
             <div><strong>W</strong> <span style="margin-left: 15px;"></span> <span style="color: #4caf50;">↑ UP</span></div>
             <div><strong>A</strong> <span style="margin-left: 15px;"></span> <span style="color: #4caf50;">← LEFT</span></div>
             <div><strong>S</strong> <span style="margin-left: 15px;"></span> <span style="color: #4caf50;">↓ DOWN</span></div>
             <div><strong>D</strong> <span style="margin-left: 15px;"></span> <span style="color: #4caf50;">→ RIGHT</span></div>
-            <div><strong>Q E</strong> <span style="margin-left: 5px;"></span> <span style="color: #2196f3;">↺/↻ YAW</span></div>
-            <div><strong>X C</strong> <span style="margin-left: 5px;"></span> <span style="color: #ff5722;">↑/↓ PITCH</span></div>
+            <div><strong>Q,E</strong> <span style="margin-left: 5px;"></span> <span style="color: #2196f3;">↺/↻ YAW</span></div>
+            <div><strong>X,C</strong> <span style="margin-left: 5px;"></span> <span style="color: #ff5722;">↑/↓ PITCH</span></div>
         </div>
     `;
-
-    // Style the container using JavaScript
     controlsDiv.style.position = "fixed";
     controlsDiv.style.bottom = "10px";
     controlsDiv.style.left = "10px";
@@ -648,5 +649,5 @@ function displayControls(controlsDiv) {
     controlsDiv.style.border = "2px solid rgba(255, 255, 255, 0.3)";
     controlsDiv.style.boxShadow = "0 4px 15px rgba(0, 0, 0, 0.5)";
     controlsDiv.style.lineHeight = "1.8";
-    controlsDiv.style.zIndex = "1000"; // Ensure it appears above other elements
+    controlsDiv.style.zIndex = "1000";
 }
